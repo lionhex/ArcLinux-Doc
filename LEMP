@@ -1,0 +1,88 @@
+####################################################################
+pacman -Syu
+pacman -S nginx
+systemctl start nginx
+systemctl enable nginx
+systemctl status nginx
+#####################################################################
+pacman -S mysql
+mysql_install_db --user=mysql --basedir=/usr --datadir=/var/lib/mysql
+systemctl enable mysqld
+systemctl start mysqld
+systemctl status mysqld
+mysql_secure_installation
+
+pacman -S php-fpm
+####################################################################
+nano /etc/nginx/nginx.conf
+
+location ~ \.php$ {
+   fastcgi_pass unix:/var/run/php-fpm/php-fpm.sock;
+   fastcgi_index index.php;
+   root /usr/share/nginx/html;
+   include fastcgi.conf;
+ }
+ 
+systemctl start php-fpm
+systemctl enable php-fpm
+#######################################################
+nano /usr/share/nginx/html/test.php
+<?php
+ phpinfo();
+?>
+
+systemctl restart nginx
+#########################################################
+pacman -S phpmyadmin php-mcrypt
+nano /etc/php/php.ini
+Make sure the following lines are uncommented.
+
+[...]
+extension=bz2.so
+extension=mcrypt.so
+extension=mysqli.so
+extension=pdo_mysql.so
+[...]
+Save and close the file.
+##########################################################
+nano /etc/nginx/nginx.conf
+
+Find the following block:
+location / {
+ root /usr/share/nginx/html;
+ index index.html index.htm;
+ 
+Change it to (just add a word index.php)
+
+location / {
+ root /usr/share/nginx/html;
+ index index.html index.htm index.php;
+Save and close the file.
+############################################################
+ln -s /usr/share/webapps/phpMyAdmin/ /usr/share/nginx/html/
+systemctl restart nginx
+systemctl restart php-fpm
+
+You might see an error that says “The configuration file now needs a secret passphrase (blowfish_secret)” at the bottom of phpMyAdmin dashboard.
+
+To get rid of this error, edit /etc/webapps/phpmyadmin/config.inc.php file,
+
+nano /etc/webapps/phpmyadmin/config.inc.php
+Find the following line and specify bluefish secret passphrase:
+
+$cfg['blowfish_secret'] = 'Welc0me1'; /* YOU MUST FILL IN THIS FOR COOKIE AUTH!$
+/**
+Here Welc0me1 is my secret passphrase. Save and close the file. Restart nginx service.
+
+systemctl restart nginx
+
+https://sysvn.net/install-nginx-mariadb-php-lemp-stack-on-arch-linux-2016/
+
+
+
+
+
+
+
+
+
